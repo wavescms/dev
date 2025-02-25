@@ -43,12 +43,14 @@ jobs:
           VENDOR_DIR="$HOME_DIR/vendor"
           LIVE_LINK="$HOME_DIR/live"
           LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
+          DEPLOY_DIR="$DEPLOYMENTS_DIR/$TIMESTAMP"
+          HOME_DIR="$HOME_DIR"
+          LOG_DIR="$LOG_DIR"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
-            HOME_DIR="$HOME_DIR"
-            LOG_DIR="$LOG_DIR"
-            DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
+            
+            # DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
             
             # TIMESTAMP=$(date +%Y%m%d%H%M%S)
             
@@ -70,8 +72,7 @@ jobs:
             log "Starting deployment process"
 
             # Create timestamp-based deployment directory
-            
-            DEPLOY_DIR="$DEPLOYMENTS_DIR/$TIMESTAMP"
+                       
 
             log "Creating deployment directory: $DEPLOY_DIR"
             mkdir -p "$DEPLOY_DIR" || { log "ERROR: Failed to create deployment directory"; exit 1; }
