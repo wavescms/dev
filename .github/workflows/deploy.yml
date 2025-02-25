@@ -79,9 +79,6 @@ jobs:
             log "Creating symlink for vendor directory"
             rm -rf "$DEPLOY_DIR/vendor"
             ln -s "$VENDOR_DIR" "$DEPLOY_DIR/vendor"
-            log "Creating symlink for node_modules directory"
-            rm -rf "$DEPLOY_DIR/node_modules"
-            ln -s "$NODEMODULES_DIR" "$DEPLOY_DIR/node_modules"
 
             # Copy .env file
             log "Copying .env file"
@@ -95,7 +92,7 @@ jobs:
             php artisan migrate --force || { log "ERROR: Artisan migrate failed"; exit 1; }
 
             log "Installing npm dependencies"
-            npm install || { log "ERROR: NPM install failed"; exit 1; }
+            npm install --prefer-offline --no-audit --legacy-peer-deps || { log "ERROR: NPM install failed"; exit 1; }
 
             log "Building frontend assets"
             npm run build || { log "ERROR: NPM build failed"; exit 1; }
