@@ -92,8 +92,8 @@ jobs:
             php artisan migrate --force || { log "ERROR: Artisan migrate failed"; exit 1; }
 
             log "Installing npm dependencies"
-            # npm install --prefer-offline --no-audit --legacy-peer-deps || { log "ERROR: NPM install failed"; exit 1; }
-            npm install || { log "ERROR: NPM install failed"; exit 1; }
+            npm install --prefer-offline --no-audit --legacy-peer-deps || { log "ERROR: NPM install failed"; exit 1; }
+            # npm install || { log "ERROR: NPM install failed"; exit 1; }
 
             log "Building frontend assets"
             npm run build || { log "ERROR: NPM build failed"; exit 1; }
@@ -124,16 +124,23 @@ jobs:
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
+            php artisan optimize
+            
+            log "Restarting PHP-FPM to apply changes"
+            sudo systemctl restart php8.3-fpm || { log "ERROR: Failed to restart PHP-FPM"; exit 1; }
+
+            log "Restarting Nginx (if needed)"
+            sudo systemctl restart nginx || { log "ERROR: Failed to restart Nginx"; exit 1; }
 
             # Keep only the last 5 deployments
             log "Cleaning up old deployments"
             cd /home/dev/deployments
             ls -t | tail -n +6 | xargs -I {} rm -rf {}
 
-            # Keep only the last 20 log files
+            # Keep only the last 10 log files
             log "Cleaning up old log files"
             cd "$LOG_DIR"
-            ls -t | tail -n +21 | xargs -I {} rm {}
+            ls -t | tail -n +11 | xargs -I {} rm {}
 
             log "Deployment completed successfully!"
           EOF
