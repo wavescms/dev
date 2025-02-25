@@ -53,6 +53,10 @@ jobs:
             # Setup logging
             mkdir -p "$HOME_DIR/$LOG_DIR"
             LOG_FILE="$HOME_DIR/$LOG_DIR/deploy-$TIMESTAMP.log"
+            
+            log() {
+              echo "[$(date +"%Y-%m-%d %H:%M:%S")] -> $LOG_FILE"
+            }
 
             log() {
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
