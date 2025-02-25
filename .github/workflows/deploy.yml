@@ -49,10 +49,16 @@ jobs:
             VENDOR_DIR="$HOME_DIR/vendor"
             LIVE_LINK="$HOME_DIR/live"
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            
+            echo "LOG_DIR is: $LOG_DIR"
+            echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
+            
 
             # Setup logging
             mkdir -p "$LOG_DIR"
             LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
+            
+            echo "LOG_FILE is: $LOG_FILE"
 
             log() {
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
