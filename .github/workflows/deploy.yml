@@ -39,13 +39,13 @@ jobs:
       - name: Deploy to server
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)  # Generate timestamp before SSH
+          HOME_DIR="$HOME_DIR"
           STORAGE_DIR="$HOME_DIR/storage"
           VENDOR_DIR="$HOME_DIR/vendor"
           LIVE_LINK="$HOME_DIR/live"
+          LOG_DIR="$LOG_DIR"
           LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
           DEPLOY_DIR="$DEPLOYMENTS_DIR/$TIMESTAMP"
-          HOME_DIR="$HOME_DIR"
-          LOG_DIR="$LOG_DIR"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
@@ -124,6 +124,8 @@ jobs:
 
             log "Building frontend assets"
             npm run build || { log "ERROR: NPM build failed"; exit 1; }
+            
+            echo "AAA"
 
             # Ensure LIVE_LINK is removed if it's a directory or an old symlink
             if [ -d "$LIVE_LINK" ] || [ -L "$LIVE_LINK" ]; then
@@ -131,15 +133,21 @@ jobs:
               rm -rf "$LIVE_LINK"
             fi
             
+            echo "BBB"
+            
             # Create a new symlink pointing to the latest deployment
             log "Creating new live symlink: $LIVE_LINK -> $DEPLOY_DIR"
             ln -s "$DEPLOY_DIR" "$LIVE_LINK"
+            
+            echo "CCC"
             
             # Verify that the symlink was created correctly
             if [ "$(readlink "$LIVE_LINK")" != "$DEPLOY_DIR" ]; then
               log "ERROR: Failed to create correct live symlink!"
               exit 1
             fi
+            
+            echo "DDD"
 
             log "Live symlink successfully updated to: $(readlink "$LIVE_LINK")"
 
