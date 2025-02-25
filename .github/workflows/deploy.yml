@@ -1,10 +1,16 @@
-# .github/workflows/deploy.yml
 name: Deploy to Production
 
 on:
   push:
     branches:
       - main
+
+env:
+  USER: ${{ secrets.DEPLOY_USER }}
+  DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+  HOME_DIR: ${{ secrets.DEPLOY_HOME }}
+  LOG_DIR: ${{ secrets.DEPLOY_LOGS }}
+  DEPLOYMENTS_DIR: ${{ secrets.DEPLOY_PATH }}
 
 jobs:
   deploy:
@@ -21,17 +27,26 @@ jobs:
       - name: Add host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H dev.neurobytotalstay.co.za >> ~/.ssh/known_hosts
+          ssh-keyscan -H $DOMAIN >> ~/.ssh/known_hosts
           
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no dev@dev.neurobytotalstay.co.za << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
+            # Load environment variables
+            USER="$USER"
+            DOMAIN="$DOMAIN"
+            HOME_DIR="$HOME_DIR"
+            LOG_DIR="$LOG_DIR"
+            DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
+            STORAGE_DIR="$HOME_DIR/storage"
+            VENDOR_DIR="$HOME_DIR/vendor"
+            NODEMODULES_DIR="$HOME_DIR/node_modules"
+            LIVE_LINK="$HOME_DIR/live"
+
             # Setup logging
-            LOG_DIR="/home/dev/_logs-deploy"
             mkdir -p "$LOG_DIR"
             LOG_FILE="$LOG_DIR/deploy-$(date +%Y%m%d%H%M%S).log"
 
-            # Function to log messages
             log() {
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
             }
@@ -40,10 +55,7 @@ jobs:
 
             # Create timestamp-based deployment directory
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            DEPLOY_DIR="/home/dev/_deployments/$TIMESTAMP"
-            LIVE_LINK="/home/dev/live"
-            STORAGE_DIR="/home/dev/storage"
-            VENDOR_DIR="/home/dev/vendor"
+            DEPLOY_DIR="$DEPLOYMENTS_DIR/$TIMESTAMP"
 
             log "Creating deployment directory: $DEPLOY_DIR"
             mkdir -p "$DEPLOY_DIR" || { log "ERROR: Failed to create deployment directory"; exit 1; }
@@ -64,7 +76,7 @@ jobs:
             # Verify we're in the right directory
             pwd | tee -a "$LOG_FILE"
             
-            # Ensure shared directories exists
+            # Ensure shared directories exist
             log "Ensuring storage directory exists"
             mkdir -p "$STORAGE_DIR"
             log "Ensuring shared directories exist"
@@ -81,7 +93,7 @@ jobs:
 
             # Copy .env file
             log "Copying .env file"
-            cp /home/dev/.env "$DEPLOY_DIR/.env" || { log "ERROR: Failed to copy .env file"; exit 1; }
+            cp "$HOME_DIR/.env" "$DEPLOY_DIR/.env" || { log "ERROR: Failed to copy .env file"; exit 1; }
 
             # Install dependencies
             log "Installing composer dependencies"
@@ -92,29 +104,27 @@ jobs:
 
             log "Installing npm dependencies"
             npm install --prefer-offline --no-audit --legacy-peer-deps || { log "ERROR: NPM install failed"; exit 1; }
-            # npm install || { log "ERROR: NPM install failed"; exit 1; }
 
             log "Building frontend assets"
             npm run build || { log "ERROR: NPM build failed"; exit 1; }
-            
-            
-            # Ensure /home/dev/live is removed if it's a directory or an old symlink
-            if [ -d "/home/dev/live" ] || [ -L "/home/dev/live" ]; then
-              log "Removing existing /home/dev/live"
-              rm -rf /home/dev/live
+
+            # Ensure LIVE_LINK is removed if it's a directory or an old symlink
+            if [ -d "$LIVE_LINK" ] || [ -L "$LIVE_LINK" ]; then
+              log "Removing existing $LIVE_LINK"
+              rm -rf "$LIVE_LINK"
             fi
             
             # Create a new symlink pointing to the latest deployment
-            log "Creating new live symlink: /home/dev/live -> $DEPLOY_DIR"
-            ln -s "$DEPLOY_DIR" /home/dev/live
+            log "Creating new live symlink: $LIVE_LINK -> $DEPLOY_DIR"
+            ln -s "$DEPLOY_DIR" "$LIVE_LINK"
             
             # Verify that the symlink was created correctly
-            if [ "$(readlink /home/dev/live)" != "$DEPLOY_DIR" ]; then
+            if [ "$(readlink "$LIVE_LINK")" != "$DEPLOY_DIR" ]; then
               log "ERROR: Failed to create correct live symlink!"
               exit 1
             fi
 
-            log "Live symlink successfully updated to: $(readlink /home/dev/live)"
+            log "Live symlink successfully updated to: $(readlink "$LIVE_LINK")"
 
             # Clear Laravel cache
             log "Clearing Laravel cache"
@@ -128,12 +138,9 @@ jobs:
             log "Restarting PHP-FPM to apply changes"
             sudo systemctl restart php8.3-fpm || { log "ERROR: Failed to restart PHP-FPM"; exit 1; }
 
-            # log "Restarting Nginx (if needed)"
-            # sudo systemctl restart nginx || { log "ERROR: Failed to restart Nginx"; exit 1; }
-
             # Keep only the last 5 deployments
             log "Cleaning up old deployments"
-            cd /home/dev/deployments
+            cd "$DEPLOYMENTS_DIR"
             ls -t | tail -n +6 | xargs -I {} rm -rf {}
 
             # Keep only the last 10 log files
