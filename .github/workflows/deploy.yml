@@ -50,6 +50,7 @@ jobs:
             LIVE_LINK="$HOME_DIR/live"
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
             
+            echo "HOME_DIR is: $HOME_DIR"
             echo "LOG_DIR is: $LOG_DIR"
             echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
             
