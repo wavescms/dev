@@ -47,12 +47,11 @@ jobs:
             DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
             STORAGE_DIR="$HOME_DIR/storage"
             VENDOR_DIR="$HOME_DIR/vendor"
-            NODEMODULES_DIR="$HOME_DIR/node_modules"
             LIVE_LINK="$HOME_DIR/live"
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
             # Setup logging
-            mkdir -p "$LOG_DIR"
+            mkdir -p "$HOME_DIR/$LOG_DIR"
             LOG_FILE="$HOME_DIR/$LOG_DIR/deploy-$TIMESTAMP.log"
 
             log() {
