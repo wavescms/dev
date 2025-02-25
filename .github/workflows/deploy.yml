@@ -39,15 +39,16 @@ jobs:
       - name: Deploy to server
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)  # Generate timestamp before SSH
+          STORAGE_DIR="$HOME_DIR/storage"
+          VENDOR_DIR="$HOME_DIR/vendor"
+          LIVE_LINK="$HOME_DIR/live"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
             HOME_DIR="$HOME_DIR"
             LOG_DIR="$LOG_DIR"
             DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
-            STORAGE_DIR="$HOME_DIR/storage"
-            VENDOR_DIR="$HOME_DIR/vendor"
-            LIVE_LINK="$HOME_DIR/live"
+            
             # TIMESTAMP=$(date +%Y%m%d%H%M%S)
             
             echo "HOME_DIR is: $HOME_DIR"
@@ -55,6 +56,7 @@ jobs:
             echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
             echo "TIMESTAMP is: $TIMESTAMP"
             echo "STORAGE is: $STORAGE_DIR"
+            echo "LIVE is: $LIVE_LINK"
 
             # Setup logging
             mkdir -p "$LOG_DIR"
