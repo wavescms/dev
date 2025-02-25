@@ -10,17 +10,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         
-      - name: Debug Environment
+      - name: Debug SSH Setup
         run: |
           echo "Checking home directory..."
           ls -la $HOME
-          echo "Checking .ssh directory..."
-          mkdir -p ~/.ssh
+          echo "Checking if ~/.ssh exists before creating..."
+          ls -la ~/.ssh || echo "~/.ssh does not exist yet"
+          
+          echo "Creating ~/.ssh directory..."
+          mkdir -p ~/.ssh || echo "Failed to create ~/.ssh"
+          
+          echo "Checking ~/.ssh after creation..."
           ls -la ~/.ssh
           
-      - name: Debug SSH Key Setup
+      - name: Check if SSH Key is Loaded
         run: |
-          echo "Checking if SSH key is loaded..."
           if [[ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]]; then
             echo "ERROR: SSH_PRIVATE_KEY is empty or not accessible!"
             exit 1
@@ -33,7 +37,13 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H your-server.com >> ~/.ssh/known_hosts
+          
+      - name: Debug ssh-keyscan
+        run: |
+          ssh-keyscan -H dev.neurobytotalstay.co.za
 
       - name: Test SSH Connection
-        run: ssh -v -o StrictHostKeyChecking=no user@your-server.com "echo 'SSH Connection Successful'"
+        run: ssh -i ~/.ssh/id_rsa -v -o StrictHostKeyChecking=no dev@dev.neurobytotalstay.co.za "echo 'SSH Connection Successful'"
+
+        
+      
