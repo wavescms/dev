@@ -48,17 +48,25 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN \
             "HOME_DIR=$HOME_DIR LOG_DIR=$FULL_LOG_DIR DEPLOYMENTS_DIR=$FULL_DEPLOYMENTS_DIR bash -s" << 'EOF'
             # Load environment variables inside SSH
-            HOME_DIR="$HOME_DIR"
-            LOG_DIR="$FULL_LOG_DIR"
-            DEPLOYMENTS_DIR="$FULL_DEPLOYMENTS_DIR"
+            #HOME_DIR="$HOME_DIR"
+            #LOG_DIR="$FULL_LOG_DIR"
+            #DEPLOYMENTS_DIR="$FULL_DEPLOYMENTS_DIR"
+            
             STORAGE_DIR="$HOME_DIR/storage"
             VENDOR_DIR="$HOME_DIR/vendor"
             LIVE_LINK="$HOME_DIR/live"
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
             
+            TEST_DIR="$HOME_DIR"
+            TEST2_DIR="$HOME_DIR/testing"
+            
             echo "HOME_DIR is: $HOME_DIR"
             echo "LOG_DIR is: $LOG_DIR"
             echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
+            echo "TIMESTAMP is: $TIMESTAMP"
+            echo "STORAGE is: $STORAGE_DIR"
+            echo "TEST is: $TEST_DIR"
+            echo "TEST2 is: $TEST2_DIR"
             
 
             # Setup logging
