@@ -6,11 +6,11 @@ on:
       - main
 
 env:
-  USER: ${{ secrets.DEPLOY_USER }}
-  DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
-  HOME_DIR: ${{ secrets.DEPLOY_HOME }}
-  LOG_DIR: ${{ secrets.DEPLOY_LOGS }}
-  DEPLOYMENTS_DIR: ${{ secrets.DEPLOY_PATH }}
+  USER: ${{ vars.DEPLOY_USER }}
+  DOMAIN: ${{ vars.DEPLOY_DOMAIN }}
+  HOME_DIR: ${{ vars.DEPLOY_HOME }}
+  LOG_DIR: ${{ vars.DEPLOY_LOGS }}
+  DEPLOYMENTS_DIR: ${{ vars.DEPLOY_PATH }}
 
 jobs:
   deploy:
