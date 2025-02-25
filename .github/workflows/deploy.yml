@@ -90,9 +90,27 @@ jobs:
             ln -s "$STORAGE_DIR" "$DEPLOY_DIR/storage"
 
             # Update live symlink
-            log "Updating live symbolic link"
-            rm -f "$LIVE_LINK"
-            ln -s "$DEPLOY_DIR" "$LIVE_LINK"
+            #log "Updating live symbolic link"
+            #rm -f "$LIVE_LINK"
+            #ln -s "$DEPLOY_DIR" "$LIVE_LINK"
+            
+            # Ensure /home/dev/live is removed if it's a directory or an old symlink
+            if [ -d "/home/dev/live" ] || [ -L "/home/dev/live" ]; then
+              log "Removing existing /home/dev/live"
+              rm -rf /home/dev/live
+            fi
+            
+            # Create a new symlink pointing to the latest deployment
+            log "Creating new live symlink: /home/dev/live -> $DEPLOY_DIR"
+            ln -s "$DEPLOY_DIR" /home/dev/live
+            
+            # Verify that the symlink was created correctly
+            if [ "$(readlink /home/dev/live)" != "$DEPLOY_DIR" ]; then
+              log "ERROR: Failed to create correct live symlink!"
+              exit 1
+            fi
+
+            log "Live symlink successfully updated to: $(readlink /home/dev/live)"
 
             # Clear Laravel cache
             log "Clearing Laravel cache"
@@ -101,6 +119,7 @@ jobs:
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
+            php artisan optimize
 
             # Keep only the last 5 deployments
             log "Cleaning up old deployments"
