@@ -9,6 +9,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        
+      - name: Debug Environment
+        run: |
+          echo "Checking home directory..."
+          ls -la $HOME
+          echo "Checking .ssh directory..."
+          mkdir -p ~/.ssh
+          ls -la ~/.ssh
 
       - name: Setup SSH Key
         run: |
