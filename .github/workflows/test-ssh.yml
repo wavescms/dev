@@ -1,0 +1,21 @@
+name: Test SSH Connection
+
+on:
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  test-ssh:
+    runs-on: ubuntu-latest  # Use a Linux runner
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H your-server.com >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        run: ssh -v -o StrictHostKeyChecking=no user@your-server.com "echo 'SSH Connection Successful'"
