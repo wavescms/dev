@@ -27,7 +27,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no dev@dev.neurobytotalstay.co.za << 'EOF'
             # Setup logging
-            LOG_DIR="/home/dev/deployment_logs"
+            LOG_DIR="/home/dev/_logs-deploy"
             mkdir -p "$LOG_DIR"
             LOG_FILE="$LOG_DIR/deploy-$(date +%Y%m%d%H%M%S).log"
 
@@ -40,11 +40,10 @@ jobs:
 
             # Create timestamp-based deployment directory
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            DEPLOY_DIR="/home/dev/deployments/$TIMESTAMP"
+            DEPLOY_DIR="/home/dev/_deployments/$TIMESTAMP"
             LIVE_LINK="/home/dev/live"
             STORAGE_DIR="/home/dev/storage"
             VENDOR_DIR="/home/dev/vendor"
-            NODEMODULES_DIR="/home/dev/node_modules"
 
             log "Creating deployment directory: $DEPLOY_DIR"
             mkdir -p "$DEPLOY_DIR" || { log "ERROR: Failed to create deployment directory"; exit 1; }
