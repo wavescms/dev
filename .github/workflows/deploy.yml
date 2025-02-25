@@ -42,6 +42,7 @@ jobs:
           STORAGE_DIR="$HOME_DIR/storage"
           VENDOR_DIR="$HOME_DIR/vendor"
           LIVE_LINK="$HOME_DIR/live"
+          LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
@@ -53,6 +54,7 @@ jobs:
             
             echo "HOME_DIR is: $HOME_DIR"
             echo "LOG_DIR is: $LOG_DIR"
+            echo "LOG_FILE is: $LOG_FILE"
             echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
             echo "TIMESTAMP is: $TIMESTAMP"
             echo "STORAGE is: $STORAGE_DIR"
@@ -60,9 +62,6 @@ jobs:
 
             # Setup logging
             mkdir -p "$LOG_DIR"
-            LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
-            
-            echo "LOG_FILE is: $LOG_FILE"
 
             log() {
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
