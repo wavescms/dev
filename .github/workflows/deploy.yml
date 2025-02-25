@@ -25,7 +25,7 @@ jobs:
           
       - name: Deploy to server
         run: |
-          ssh dev@your-server.com '
+          ssh dev@dev.neurobytotalstay.co.za '
             # Setup logging
             LOG_DIR="/home/dev/deployment_logs"
             mkdir -p "$LOG_DIR"
