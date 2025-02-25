@@ -38,6 +38,8 @@ jobs:
           
       - name: Deploy to server
         run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)  # Generate timestamp before SSH
+          
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
             HOME_DIR="$HOME_DIR"
@@ -46,7 +48,7 @@ jobs:
             STORAGE_DIR="$HOME_DIR/storage"
             VENDOR_DIR="$HOME_DIR/vendor"
             LIVE_LINK="$HOME_DIR/live"
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            # TIMESTAMP=$(date +%Y%m%d%H%M%S)
             
             echo "HOME_DIR is: $HOME_DIR"
             echo "LOG_DIR is: $LOG_DIR"
