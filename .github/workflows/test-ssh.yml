@@ -17,11 +17,21 @@ jobs:
           echo "Checking .ssh directory..."
           mkdir -p ~/.ssh
           ls -la ~/.ssh
+          
+      - name: Debug SSH Key Setup
+        run: |
+          echo "Checking if SSH key is loaded..."
+          if [[ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]]; then
+            echo "ERROR: SSH_PRIVATE_KEY is empty or not accessible!"
+            exit 1
+          else
+            echo "SSH_PRIVATE_KEY is loaded."
+          fi
 
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H your-server.com >> ~/.ssh/known_hosts
 
