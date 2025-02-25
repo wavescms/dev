@@ -38,14 +38,7 @@ jobs:
           
       - name: Deploy to server
         run: |
-          # Expand environment variables before entering SSH
-          FULL_LOG_DIR="$HOME_DIR/$LOG_DIR"
-          FULL_DEPLOYMENTS_DIR="$HOME_DIR/$DEPLOYMENTS_DIR"
-
-          echo "Setting FULL_LOG_DIR to: $FULL_LOG_DIR"
-          echo "Setting FULL_DEPLOYMENTS_DIR to: $FULL_DEPLOYMENTS_DIR"
-
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             # Load environment variables inside SSH
             HOME_DIR="$HOME_DIR"
             LOG_DIR="$LOG_DIR"
