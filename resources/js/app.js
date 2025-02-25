@@ -1,3 +1,3 @@
 import './bootstrap';
 
-console.log("Test 22");
+console.log("Test 23");

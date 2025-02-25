@@ -129,8 +129,8 @@ jobs:
             log "Restarting PHP-FPM to apply changes"
             sudo systemctl restart php8.3-fpm || { log "ERROR: Failed to restart PHP-FPM"; exit 1; }
 
-            log "Restarting Nginx (if needed)"
-            sudo systemctl restart nginx || { log "ERROR: Failed to restart Nginx"; exit 1; }
+            # log "Restarting Nginx (if needed)"
+            # sudo systemctl restart nginx || { log "ERROR: Failed to restart Nginx"; exit 1; }
 
             # Keep only the last 5 deployments
             log "Cleaning up old deployments"
