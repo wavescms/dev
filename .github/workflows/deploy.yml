@@ -1,0 +1,128 @@
+# .github/workflows/deploy.yml
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H dev.neurobytotalstay.co.za >> ~/.ssh/known_hosts
+          
+      - name: Deploy to server
+        run: |
+          ssh dev@your-server.com '
+            # Setup logging
+            LOG_DIR="/home/dev/deployment_logs"
+            mkdir -p "$LOG_DIR"
+            LOG_FILE="$LOG_DIR/deploy-$(date +%Y%m%d%H%M%S).log"
+            
+            # Function to log messages
+            log() {
+              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
+            }
+            
+            # Log start of deployment
+            log "Starting deployment process"
+            
+            # Create timestamp for the new deployment
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            DEPLOY_DIR="/home/dev/deployments/$TIMESTAMP"
+            LIVE_LINK="/home/dev/live"
+            STORAGE_DIR="/home/dev/storage"
+            
+            log "Creating deployment directory: $DEPLOY_DIR"
+            mkdir -p "$DEPLOY_DIR" 2>&1 | tee -a "$LOG_FILE"
+            
+            # Clone repository to the new deployment directory
+            log "Cloning repository to deployment directory"
+            git clone https://github.com/wavescms/dev.git "$DEPLOY_DIR" 2>&1 | tee -a "$LOG_FILE"
+            
+            if [ ! -d "$DEPLOY_DIR" ]; then
+              log "ERROR: Failed to create deployment directory. Aborting."
+              exit 1
+            fi
+            
+            log "Changing to deployment directory"
+            cd "$DEPLOY_DIR" 2>&1 | tee -a "$LOG_FILE"
+            
+            # Copy environment file
+            log "Copying .env file"
+            cp /home/dev/.env "$DEPLOY_DIR/.env" 2>&1 | tee -a "$LOG_FILE"
+            
+            if [ ! -f "$DEPLOY_DIR/.env" ]; then
+              log "ERROR: Failed to copy .env file. Aborting."
+              exit 1
+            fi
+            
+            # Install dependencies and build assets
+            log "Installing composer dependencies"
+            composer update --no-interaction --no-dev --optimize-autoloader 2>&1 | tee -a "$LOG_FILE"
+            
+            log "Running database migrations"
+            php artisan migrate --force 2>&1 | tee -a "$LOG_FILE"
+            
+            log "Installing npm dependencies"
+            npm update 2>&1 | tee -a "$LOG_FILE"
+            
+            log "Building frontend assets"
+            npm run build 2>&1 | tee -a "$LOG_FILE"
+            
+            # Create storage directory if it doesn't exist
+            log "Ensuring storage directory exists"
+            mkdir -p "$STORAGE_DIR" 2>&1 | tee -a "$LOG_FILE"
+            
+            # Create symbolic link for storage
+            log "Creating symbolic link for storage"
+            rm -rf "$DEPLOY_DIR/storage" 2>&1 | tee -a "$LOG_FILE"
+            ln -s "$STORAGE_DIR" "$DEPLOY_DIR/storage" 2>&1 | tee -a "$LOG_FILE"
+            
+            if [ ! -L "$DEPLOY_DIR/storage" ]; then
+              log "ERROR: Failed to create storage symlink. Aborting."
+              exit 1
+            fi
+            
+            # Update symbolic link for the live directory
+            log "Updating live symbolic link"
+            rm -f "$LIVE_LINK" 2>&1 | tee -a "$LOG_FILE"
+            ln -s "$DEPLOY_DIR" "$LIVE_LINK" 2>&1 | tee -a "$LOG_FILE"
+            
+            if [ ! -L "$LIVE_LINK" ]; then
+              log "ERROR: Failed to create live symlink. Aborting."
+              exit 1
+            fi
+            
+            # Clear Laravel cache
+            log "Clearing Laravel cache"
+            cd "$LIVE_LINK" 2>&1 | tee -a "$LOG_FILE"
+            php artisan cache:clear 2>&1 | tee -a "$LOG_FILE"
+            php artisan config:clear 2>&1 | tee -a "$LOG_FILE"
+            php artisan route:clear 2>&1 | tee -a "$LOG_FILE"
+            php artisan view:clear 2>&1 | tee -a "$LOG_FILE"
+            
+            # Keep only the last 5 deployments
+            log "Cleaning up old deployments"
+            cd /home/dev/deployments 2>&1 | tee -a "$LOG_FILE"
+            ls -t | tail -n +6 | xargs -I {} rm -rf {} 2>&1 | tee -a "$LOG_FILE"
+            
+            # Keep only the last 20 log files
+            log "Cleaning up old log files"
+            cd "$LOG_DIR" 2>&1 | tee -a "$LOG_FILE"
+            ls -t | tail -n +21 | xargs -I {} rm {} 2>&1 | tee -a "$LOG_FILE"
+            
+            log "Deployment completed successfully!"
+          '
