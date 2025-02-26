@@ -58,9 +58,10 @@ jobs:
             echo "LOG_DIR is: $LOG_DIR"
             echo "LOG_FILE is: $LOG_FILE"
             echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
+            echo "DEPLOY_DIR is: $DEPLOY_DIR"
             echo "TIMESTAMP is: $TIMESTAMP"
             echo "STORAGE is: $STORAGE_DIR"
-            echo "LIVE is: $LIVE_LINK"
+            echo "LIVE_LINK is: $LIVE_LINK"
 
             # Setup logging
             mkdir -p "$LOG_DIR"
