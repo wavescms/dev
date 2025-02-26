@@ -159,9 +159,7 @@ jobs:
               echo "ERROR: Failed to create correct live symlink!  $LIVE_PATH = $(readlink "$LIVE_PATH") != $DEPLOY_PATH"
               #exit 1
             fi
-            echo "Live symlink successfully updated to: $(readlink "$LIVE_PATH")" | tee -a "$LOG_FILE"
-            
-            exit 1;
+            echo "Live symlink successfully updated to: $(realpath "$LIVE_PATH")" | tee -a "$LOG_FILE"
 
             # Clear Laravel cache
             echo "Clearing Laravel cache and optimize" | tee -a "$LOG_FILE"
@@ -174,6 +172,8 @@ jobs:
             
             echo "Restarting PHP-FPM to apply changes" | tee -a "$LOG_FILE"
             sudo systemctl restart php8.3-fpm || { echo "ERROR: Failed to restart PHP-FPM" | tee -a "$LOG_FILE"; exit 1; }
+            
+            exit 1;
 
             # Keep only the last 5 deployments
             echo "Cleaning up old deployments" | tee -a "$LOG_FILE"
