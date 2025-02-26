@@ -76,7 +76,7 @@ jobs:
             echo "########################"
             echo "" | tee -a "$LOG_FILE"
             
-            
+            echo "CHECK 1" | tee -a "$LOG_FILE"
             
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
 
