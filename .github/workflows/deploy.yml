@@ -78,10 +78,9 @@ jobs:
             
             echo "CHECK 1" | tee -a "$LOG_FILE"
             
-            echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
-            
+            eval echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
             sleep 2
-            echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Check sleep 2" | tee -a "$LOG_FILE"
+            eval echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Check sleep 2" | tee -a "$LOG_FILE"
 
             # Setup logging
             echo "Creating logging directory: $LOG_PATH" | tee -a "$LOG_FILE"
@@ -136,8 +135,6 @@ jobs:
             echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Completed Installing composer dependencies" | tee -a "$LOG_FILE"
             
             sleep 2
-            
-            exit 1;
 
             # artisan migrate
             echo "Running database migrations" | tee -a "$LOG_FILE"
@@ -153,6 +150,8 @@ jobs:
             # npm run build
             echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Building frontend assets" | tee -a "$LOG_FILE"
             npm run build || { echo "ERROR: NPM build failed" | tee -a "$LOG_FILE"; exit 1; }
+            
+            exit 1;
             
             # Ensure LIVE_PATH is removed if it's a directory or an old symlink
             echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
@@ -195,5 +194,5 @@ jobs:
             cd "$LOG_PATH"
             ls -t | tail -n +11 | xargs -I {} rm {}
 
-            echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Deployment completed successfully!" | tee -a "$LOG_FILE"
+            eval echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Deployment completed successfully!" | tee -a "$LOG_FILE"
           EOF
