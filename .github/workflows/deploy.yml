@@ -13,6 +13,7 @@ env:
   DEPLOYMENTS_PATH: ${{ vars.DEPLOY_DEPLOYMENTS_PATH }}
   LIVE_PATH: ${{ vars.DEPLOY_LIVE_PATH }}
   STORAGE_PATH: ${{ vars.DEPLOY_STORAGE_PATH }}
+  VENDOR_PATH: ${{ vars.DEPLOY_VENDOR_PATH }}
 
 jobs:
   deploy:
@@ -38,16 +39,25 @@ jobs:
       - name: Deploy to server
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          LOG_PATH="$LOG_PATH"
-          LOG_FILE="$LOG_PATH/deploy-$TIMESTAMP.log"
-          DEPLOY_PATH="$DEPLOYMENTS_PATH/$TIMESTAMP"
           
+          if [ -z "$LOG_PATH" ]; then
+            LOG_PATH="$HOME_PATH/_logs"
+          fi
+          if [ -z "$DEPLOYMENTS_PATH" ]; then
+            DEPLOYMENTS_PATH="$HOME_PATH/_deployments"
+          fi
           if [ -z "$STORAGE_PATH" ]; then
             STORAGE_PATH="$HOME_PATH/storage"
           fi
           if [ -z "$VENDOR_PATH" ]; then
             VENDOR_PATH="$HOME_PATH/vendor"
           fi
+          if [ -z "$LIVE_PATH" ]; then
+            LIVE_PATH="$HOME_PATH/live"
+          fi
+          
+          LOG_FILE="$LOG_PATH/deploy-$TIMESTAMP.log"
+          DEPLOY_PATH="$DEPLOYMENTS_PATH/$TIMESTAMP"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             
@@ -64,11 +74,9 @@ jobs:
             echo "LIVE_PATH is: $LIVE_PATH" | tee -a "$LOG_FILE"
             echo "########################" | tee -a "$LOG_FILE"
             echo "########################"
+            echo "" | tee -a "$LOG_FILE"
             
-            log() {
-              local message="$1"
-              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $message" | tee -a "$LOG_FILE"
-            }
+            
             
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
 
@@ -84,81 +92,72 @@ jobs:
             exit 1;
 
             # Clone repository
-            log "Cloning repository to deployment directory"
-            git clone https://github.com/wavescms/dev.git "$DEPLOY_DIR" || { log "ERROR: Git clone failed"; exit 1; }
+            echo "Cloning repository to deployment directory"
+            git clone https://github.com/wavescms/dev.git "$DEPLOY_PATH" || { echo "ERROR: Git clone failed" | tee -a "$LOG_FILE"; exit 1; }
 
             # Ensure directory exists before changing into it
-            if [ ! -d "$DEPLOY_DIR" ]; then
-              log "ERROR: Deployment directory does not exist. Aborting."
-              exit 1
+            if [ ! -d "$DEPLOY_PATH" ]; then
+              echo "ERROR: Deployment directory does not exist. Aborting." | tee -a "$LOG_FILE"; exit 1;
             fi
 
-            log "Changing to deployment directory"
-            cd "$DEPLOY_DIR" || { log "ERROR: Failed to change directory to DEPLOY_DIR"; exit 1; }
+            echo "Changing to deployment directory" | tee -a "$LOG_FILE"
+            cd "$DEPLOY_PATH" || { echo "ERROR: Failed to change directory to $DEPLOY_PATH" | tee -a "$LOG_FILE"; exit 1; }
 
             # Verify we're in the right directory
             pwd | tee -a "$LOG_FILE"
             
             # Ensure shared directories exist
-            log "Ensuring storage directory exists"
-            mkdir -p "$STORAGE_DIR"
-            log "Ensuring shared directories exist"
-            mkdir -p "$VENDOR_DIR"
+            echo "Ensuring storage directory exists" | tee -a "$LOG_FILE"
+            mkdir -p "$STORAGE_PATH" || { echo "ERROR: Failed to create storage directory $STORAGE_PATH"; exit 1; }
+            # echo "Ensuring vendor directory exist" | tee -a "$LOG_FILE"
+            # mkdir -p "$VENDOR_PATH" || { echo "ERROR: Failed to create vendor directory $VENDOR_PATH"; exit 1; }
 
             # Create symbolic link for shared directories
-            log "Creating symbolic link for storage"
-            rm -rf "$DEPLOY_DIR/storage"
-            ln -s "$STORAGE_DIR" "$DEPLOY_DIR/storage"
-            #log "Creating symlink for vendor directory"
+            echo "Creating symbolic link for storage" | tee -a "$LOG_FILE"
+            rm -rf "$DEPLOY_PATH/storage"
+            ln -s "$STORAGE_PATH" "$DEPLOY_PATH/storage"
+            #echo "Creating symlink for vendor directory" | tee -a "$LOG_FILE"
             #rm -rf "$DEPLOY_DIR/vendor"
             #ln -s "$VENDOR_DIR" "$DEPLOY_DIR/vendor"
 
             # Copy .env file
-            log "Copying .env file"
-            cp "$HOME_DIR/.env" "$DEPLOY_DIR/.env" || { log "ERROR: Failed to copy .env file"; exit 1; }
+            echo "Copying .env file" | tee -a "$LOG_FILE"
+            cp "$HOME_PATH/.env" "$DEPLOY_PATH/.env" || { echo "ERROR: Failed to copy .env file" | tee -a "$LOG_FILE"; exit 1; }
 
             # Install dependencies
-            log "Installing composer dependencies"
-            composer install --no-interaction --no-dev --optimize-autoloader || { log "ERROR: Composer install failed"; exit 1; }
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Installing composer dependencies" | tee -a "$LOG_FILE"
+            composer install --no-interaction --no-dev --optimize-autoloader || { echo "ERROR: Composer install failed" | tee -a "$LOG_FILE"; exit 1; }
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Completed Installing composer dependencies" | tee -a "$LOG_FILE"
 
-            log "Running database migrations"
-            php artisan migrate --force || { log "ERROR: Artisan migrate failed"; exit 1; }
+            echo "Running database migrations" | tee -a "$LOG_FILE"
+            php artisan migrate --force || { echo "ERROR: Artisan migrate failed" | tee -a "$LOG_FILE"; exit 1; }
 
-            log "Installing npm dependencies"
-            npm install --prefer-offline --no-audit --legacy-peer-deps || { log "ERROR: NPM install failed"; exit 1; }
+            echo "Installing npm dependencies" | tee -a "$LOG_FILE"
+            npm install --prefer-offline --no-audit --legacy-peer-deps || { echo "ERROR: NPM install failed" | tee -a "$LOG_FILE"; exit 1; }
 
-            log "Building frontend assets"
-            npm run build || { log "ERROR: NPM build failed"; exit 1; }
-            
-            echo "AAA"
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Building frontend assets" | tee -a "$LOG_FILE"
+            npm run build || { echo "ERROR: NPM build failed" | tee -a "$LOG_FILE"; exit 1; }
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Complete Building frontend assets" | tee -a "$LOG_FILE"
 
-            # Ensure LIVE_LINK is removed if it's a directory or an old symlink
-            if [ -d "$LIVE_LINK" ] || [ -L "$LIVE_LINK" ]; then
-              log "Removing existing $LIVE_LINK"
-              rm -rf "$LIVE_LINK"
+            # Ensure LIVE_PATH is removed if it's a directory or an old symlink
+            if [ -d "$LIVE_PATH" ] || [ -L "$LIVE_PATH" ]; then
+              echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
+              rm -rf "$LIVE_PATH"
             fi
-            
-            echo "BBB"
             
             # Create a new symlink pointing to the latest deployment
-            log "Creating new live symlink: $LIVE_LINK -> $DEPLOY_DIR"
-            ln -s "$DEPLOY_DIR" "$LIVE_LINK"
-            
-            echo "CCC"
+            echo "Creating new live symlink: $LIVE_PATH -> $DEPLOY_PATH" | tee -a "$LOG_FILE"
+            ln -s "$DEPLOY_PATH" "$LIVE_PATH"
             
             # Verify that the symlink was created correctly
-            if [ "$(readlink "$LIVE_LINK")" != "$DEPLOY_DIR" ]; then
-              echo "ERROR: Failed to create correct live symlink!  $LIVE_LINK = $(readlink "$LIVE_LINK") != $DEPLOY_DIR"
-              log "ERROR: Failed to create correct live symlink!"
+            if [ "$(readlink "$LIVE_PATH")" != "$DEPLOY_PATH" ]; then
+              echo "ERROR: Failed to create correct live symlink!  $LIVE_PATH = $(readlink "$LIVE_PATH") != $DEPLOY_PATH"
               #exit 1
             fi
-            
-            echo "DDD"
-
-            log "Live symlink successfully updated to: $(readlink "$LIVE_LINK")"
+            echo "Live symlink successfully updated to: $(readlink "$LIVE_PATH")" | tee -a "$LOG_FILE"
 
             # Clear Laravel cache
-            log "Clearing Laravel cache"
+            echo "Clearing Laravel cache and optimize" | tee -a "$LOG_FILE"
             cd "$LIVE_LINK"
             php artisan cache:clear
             php artisan config:clear
@@ -166,18 +165,18 @@ jobs:
             php artisan view:clear
             php artisan optimize
             
-            log "Restarting PHP-FPM to apply changes"
-            sudo systemctl restart php8.3-fpm || { log "ERROR: Failed to restart PHP-FPM"; exit 1; }
+            echo "Restarting PHP-FPM to apply changes" | tee -a "$LOG_FILE"
+            sudo systemctl restart php8.3-fpm || { echo "ERROR: Failed to restart PHP-FPM" | tee -a "$LOG_FILE"; exit 1; }
 
             # Keep only the last 5 deployments
-            log "Cleaning up old deployments"
+            echo "Cleaning up old deployments" | tee -a "$LOG_FILE"
             cd "$DEPLOYMENTS_DIR"
             ls -t | tail -n +6 | xargs -I {} rm -rf {}
 
             # Keep only the last 10 log files
-            log "Cleaning up old log files"
+            echo "Cleaning up old log files" | tee -a "$LOG_FILE"
             cd "$LOG_DIR"
             ls -t | tail -n +11 | xargs -I {} rm {}
 
-            log "Deployment completed successfully!"
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Deployment completed successfully!" | tee -a "$LOG_FILE"
           EOF
