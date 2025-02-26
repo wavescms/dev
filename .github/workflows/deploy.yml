@@ -81,6 +81,7 @@ jobs:
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
             
             sleep 2
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Check sleep 2" | tee -a "$LOG_FILE"
 
             # Setup logging
             echo "Creating logging directory: $LOG_PATH" | tee -a "$LOG_FILE"
@@ -94,8 +95,7 @@ jobs:
             # Clone repository
             echo "Cloning repository to deployment directory"
             git clone https://github.com/wavescms/dev.git "$DEPLOY_PATH" || { echo "ERROR: Git clone failed" | tee -a "$LOG_FILE"; exit 1; }
-            
-            exit 1;
+                        
 
             # Ensure directory exists before changing into it
             if [ ! -d "$DEPLOY_PATH" ]; then
@@ -121,6 +121,8 @@ jobs:
             #echo "Creating symlink for vendor directory" | tee -a "$LOG_FILE"
             #rm -rf "$DEPLOY_DIR/vendor"
             #ln -s "$VENDOR_DIR" "$DEPLOY_DIR/vendor"
+            
+            exit 1;
 
             # Copy .env file
             echo "Copying .env file" | tee -a "$LOG_FILE"
