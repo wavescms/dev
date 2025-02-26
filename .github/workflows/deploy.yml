@@ -61,13 +61,16 @@ jobs:
             echo "DEPLOY_DIR is: $DEPLOY_DIR"
             echo "TIMESTAMP is: $TIMESTAMP"
             echo "STORAGE is: $STORAGE_DIR"
+            echo "VENDOR_DIR is: $VENDOR_DIR"
             echo "LIVE_LINK is: $LIVE_LINK"
 
             # Setup logging
             mkdir -p "$LOG_DIR"
 
             log() {
+              local MESSAGE=${1:-"[NO MESSAGE]"}
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
+              echo "!!! $1"
             }
 
             log "Starting deployment process"
@@ -99,7 +102,6 @@ jobs:
             mkdir -p "$STORAGE_DIR"
             log "Ensuring shared directories exist"
             mkdir -p "$VENDOR_DIR"
-            mkdir -p "$NODEMODULES_DIR"
 
             # Create symbolic link for shared directories
             log "Creating symbolic link for storage"
