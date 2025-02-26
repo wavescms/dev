@@ -8,9 +8,10 @@ on:
 env:
   USER: ${{ vars.DEPLOY_USER }}
   DOMAIN: ${{ vars.DEPLOY_DOMAIN }}
-  HOME_DIR: ${{ vars.DEPLOY_HOME }}
-  LOG_DIR: ${{ vars.DEPLOY_LOGS }}
-  DEPLOYMENTS_DIR: ${{ vars.DEPLOY_PATH }}
+  HOME_PATH: ${{ vars.DEPLOY_HOME_PATH }}
+  LOG_PATH: ${{ vars.DEPLOY_LOGS_PATH }}
+  DEPLOYMENTS_PATH: ${{ vars.DEPLOY_DEPLOYMENTS_PATH }}
+  LIVE_PATH: ${{ vars.DEPLOY_LIVE_PATH }}
 
 jobs:
   deploy:
@@ -18,16 +19,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      #- name: Setup SSH
-      #  uses: webfactory/ssh-agent@v0.7.0
-      #  with:
-      #    ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          
-      #- name: Add host key
-      #  run: |
-      #    mkdir -p ~/.ssh
-      #    ssh-keyscan -H $DOMAIN >> ~/.ssh/known_hosts
           
       - name: Setup SSH Key
         run: |
@@ -38,85 +29,41 @@ jobs:
           
       - name: Deploy to server
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)  # Generate timestamp before SSH
-          HOME_DIR="$HOME_DIR"
-          STORAGE_DIR="$HOME_DIR/storage"
-          VENDOR_DIR="$HOME_DIR/vendor"
-          LIVE_LINK="$HOME_DIR/live"
-          LOG_DIR="$LOG_DIR"
-          LOG_FILE="$LOG_DIR/deploy-$TIMESTAMP.log"
-          DEPLOY_DIR="$DEPLOYMENTS_DIR/$TIMESTAMP"
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          #HOME_PATH="$HOME_DIR"
+          STORAGE_PATH="$HOME_PATH/storage"
+          VENDOR_PATH="$HOME_PATH/vendor"
+          #LIVE_LINK="$HOME_DIR/live"
+          LOG_PATH="$LOG_PATH"
+          LOG_FILE="$LOG_PATH/deploy-$TIMESTAMP.log"
+          DEPLOY_PATH="$DEPLOYMENTS_PATH/$TIMESTAMP"
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
-            # Load environment variables inside SSH
             
-            # DEPLOYMENTS_DIR="$DEPLOYMENTS_DIR"
+            echo "########################"
+            echo "########################"
             
-            # TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            
-            echo "HOME_DIR is: $HOME_DIR"
-            echo "LOG_DIR is: $LOG_DIR"
-            echo "LOG_FILE is: $LOG_FILE"
-            echo "DEPLOYMENTS_DIR is: $DEPLOYMENTS_DIR"
-            echo "DEPLOY_DIR is: $DEPLOY_DIR"
             echo "TIMESTAMP is: $TIMESTAMP"
-            echo "STORAGE is: $STORAGE_DIR"
-            echo "VENDOR_DIR is: $VENDOR_DIR"
-            echo "LIVE_LINK is: $LIVE_LINK"
             
+            echo "HOME_PATH is: $HOME_PATH"
+            
+            echo "STORAGE PATH is: $STORAGE_PATH"
+            echo "VENDOR_PATH is: $VENDOR_PATH"
+            
+            echo "LOG_PATH is: $LOG_PATH"
+            echo "LOG_FILE is: $LOG_FILE"
+            
+            echo "DEPLOYMENTS_PATH is: $DEPLOYMENTS_PATH"
+            echo "DEPLOY_PATH is: $DEPLOY_PATH"
+            
+            
+            echo "LIVE_PATH is: $LIVE_PATH"
+            
+
             echo "########################"
             echo "########################"
             
-            # Option 1: Use printf instead of echo
-            log1() {
-              printf "[%s] %s\n" "$(date +"%Y-%m-%d %H:%M:%S")" "$1" | tee -a "$LOG_FILE"
-            }
-            log1 "Test log1"
-
-            # Option 2: Explicitly separate the date and message
-            log2() {
-              local timestamp="[$(date +"%Y-%m-%d %H:%M:%S")]"
-              local message="$1"
-              echo "$timestamp $message" | tee -a "$LOG_FILE"
-            }
-            log2 "Test log2"
-
-            # Option 3: Skip the function and use a direct approach
-            # Replace each log "message" with:
-            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Test log 3" | tee -a "$LOG_FILE"
-
-            # Option 4: Use a simpler function with fewer moving parts
-            log4() {
-              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $*" | tee -a "$LOG_FILE"
-            }
-            log4 "Test log4"
-
-            # Option 5: Try double quotes for everything
-            log5() {
-              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
-            }
-            log5 "Test log5"
-            
-            log6() {
-              echo "AA $1"
-              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"
-            }
-            log6 "Test log6"
-            
-            log7() {
-              message="$1"
-              timestamp="$(date +"%Y-%m-%d %H:%M:%S")"
-  
-              # Write to log file
-              echo "A [$timestamp] $message" >> "$LOG_FILE"
-  
-              # Write to stdout (for GitHub Actions display)
-              echo "B [$timestamp] $message"
-            }
-            log7 "last attempt!"
-
-            echo "########################"
-            echo "########################"
+            exit 1
 
             # Setup logging
             mkdir -p "$LOG_DIR"
