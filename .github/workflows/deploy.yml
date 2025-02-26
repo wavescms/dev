@@ -81,6 +81,13 @@ jobs:
             eval echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
             sleep 2
             eval echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Check sleep 2" | tee -a "$LOG_FILE"
+            
+            echo "[`date +"%Y-%m-%d %H:%M:%S"`] BBStarting deployment process" | tee -a "$LOG_FILE"
+            sleep 2
+            echo "[`date +"%Y-%m-%d %H:%M:%S"`] BBCheck sleep 2" | tee -a "$LOG_FILE"
+            
+            TIMESTAMPER=$(date +"%Y-%m-%d %H:%M:%S")
+            echo "[$TIMESTAMPER] Check sleep 3" | tee -a "$LOG_FILE"
 
             # Setup logging
             echo "Creating logging directory: $LOG_PATH" | tee -a "$LOG_FILE"
@@ -151,14 +158,14 @@ jobs:
             echo "[$(env date +"%Y-%m-%d %H:%M:%S")] Building frontend assets" | tee -a "$LOG_FILE"
             npm run build || { echo "ERROR: NPM build failed" | tee -a "$LOG_FILE"; exit 1; }
             
-            exit 1;
-            
             # Ensure LIVE_PATH is removed if it's a directory or an old symlink
             echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
             rm -rf "$LIVE_PATH"
             #if [ -d "$LIVE_PATH" ] || [ -L "$LIVE_PATH" ]; then
             #  echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
             #fi
+            
+            exit 1;
             
             # Create a new symlink pointing to the latest deployment
             echo "Creating new live symlink: $LIVE_PATH -> $DEPLOY_PATH" | tee -a "$LOG_FILE"
