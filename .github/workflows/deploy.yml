@@ -102,6 +102,18 @@ jobs:
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"
             }
             log6 "Test log6"
+            
+            log7() {
+              message="$1"
+              timestamp="$(date +"%Y-%m-%d %H:%M:%S")"
+  
+              # Write to log file
+              echo "A [$timestamp] $message" >> "$LOG_FILE"
+  
+              # Write to stdout (for GitHub Actions display)
+              echo "B [$timestamp] $message"
+            }
+            log7 "last attempt!"
 
             echo "########################"
             echo "########################"
