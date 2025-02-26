@@ -63,6 +63,43 @@ jobs:
             echo "STORAGE is: $STORAGE_DIR"
             echo "VENDOR_DIR is: $VENDOR_DIR"
             echo "LIVE_LINK is: $LIVE_LINK"
+            
+            echo "########################"
+            echo "########################"
+            # Option 1: Use printf instead of echo
+log1() {
+  printf "[%s] %s\n" "$(date +"%Y-%m-%d %H:%M:%S")" "$1" | tee -a "$LOG_FILE"
+}
+
+log1 "Test log1"
+
+# Option 2: Explicitly separate the date and message
+log2() {
+  local timestamp="[$(date +"%Y-%m-%d %H:%M:%S")]"
+  local message="$1"
+  echo "$timestamp $message" | tee -a "$LOG_FILE"
+}
+
+log2 "Test log2"
+
+# Option 3: Skip the function and use a direct approach
+# Replace each log "message" with:
+echo "[$(date +"%Y-%m-%d %H:%M:%S")] Test log 3" | tee -a "$LOG_FILE"
+
+# Option 4: Use a simpler function with fewer moving parts
+log4() {
+  echo "[$(date +"%Y-%m-%d %H:%M:%S")] $*" | tee -a "$LOG_FILE"
+}
+log4 "Test log4"
+
+# Option 5: Try double quotes for everything
+log5() {
+  echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
+}
+log5 "Test log5"
+
+echo "########################"
+echo "########################"
 
             # Setup logging
             mkdir -p "$LOG_DIR"
