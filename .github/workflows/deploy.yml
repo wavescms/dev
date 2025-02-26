@@ -68,7 +68,7 @@ jobs:
             mkdir -p "$LOG_DIR"
 
             log() {
-              local MESSAGE=${1:-"[NO MESSAGE]"}
+              MESSAGE=${1:-"[NO MESSAGE]"}
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
               echo "!!! $1"
             }
@@ -146,6 +146,7 @@ jobs:
             
             # Verify that the symlink was created correctly
             if [ "$(readlink "$LIVE_LINK")" != "$DEPLOY_DIR" ]; then
+              echo "ERROR: Failed to create correct live symlink!  $LIVE_LINK != $DEPLOY_DIR"
               log "ERROR: Failed to create correct live symlink!"
               exit 1
             fi
