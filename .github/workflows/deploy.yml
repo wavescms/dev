@@ -12,6 +12,7 @@ env:
   LOG_PATH: ${{ vars.DEPLOY_LOGS_PATH }}
   DEPLOYMENTS_PATH: ${{ vars.DEPLOY_DEPLOYMENTS_PATH }}
   LIVE_PATH: ${{ vars.DEPLOY_LIVE_PATH }}
+  STORAGE_PATH: ${{ vars.DEPLOY_STORAGE_PATH }}
 
 jobs:
   deploy:
@@ -29,23 +30,27 @@ jobs:
           
       - name: Deploy to server
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           #HOME_PATH="$HOME_DIR"
-          STORAGE_PATH="$HOME_PATH/storage"
+          #STORAGE_PATH="$HOME_PATH/storage"
           VENDOR_PATH="$HOME_PATH/vendor"
           #LIVE_LINK="$HOME_DIR/live"
           LOG_PATH="$LOG_PATH"
           LOG_FILE="$LOG_PATH/deploy-$TIMESTAMP.log"
           DEPLOY_PATH="$DEPLOYMENTS_PATH/$TIMESTAMP"
           
+          if [ -z "$STORAGE_PATH" ]; then
+            STORAGE_PATH="$HOME_PATH/storage"
+          fi
+          
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             
             echo "########################"
-            echo "########################"
+            echo "########################" | tee -a "$LOG_FILE"
             
-            echo "TIMESTAMP is: $TIMESTAMP"
+            echo "TIMESTAMP is: $TIMESTAMP" | tee -a "$LOG_FILE"
             
-            echo "HOME_PATH is: $HOME_PATH"
+            echo "HOME_PATH is: $HOME_PATH" | tee -a "$LOG_FILE"
             
             echo "STORAGE PATH is: $STORAGE_PATH"
             echo "VENDOR_PATH is: $VENDOR_PATH"
