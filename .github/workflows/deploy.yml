@@ -154,14 +154,14 @@ jobs:
             ln -s "$DEPLOY_PATH" "$LIVE_PATH"
             echo "ln -s $DEPLOY_PATH $LIVE_PATH" | tee -a "$LOG_FILE"
             
-            exit 1;
-            
             # Verify that the symlink was created correctly
             if [ "$(readlink "$LIVE_PATH")" != "$DEPLOY_PATH" ]; then
               echo "ERROR: Failed to create correct live symlink!  $LIVE_PATH = $(readlink "$LIVE_PATH") != $DEPLOY_PATH"
               #exit 1
             fi
             echo "Live symlink successfully updated to: $(readlink "$LIVE_PATH")" | tee -a "$LOG_FILE"
+            
+            exit 1;
 
             # Clear Laravel cache
             echo "Clearing Laravel cache and optimize" | tee -a "$LOG_FILE"
