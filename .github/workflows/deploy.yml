@@ -96,6 +96,12 @@ jobs:
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1" | tee -a "$LOG_FILE"
             }
             log5 "Test log5"
+            
+            log6() {
+              echo "AA $1"
+              echo "[$(date +"%Y-%m-%d %H:%M:%S")] $1"
+            }
+            log6 "Test log6"
 
             echo "########################"
             echo "########################"
