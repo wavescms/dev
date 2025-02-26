@@ -79,6 +79,8 @@ jobs:
             echo "CHECK 1" | tee -a "$LOG_FILE"
             
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
+            
+            sleep 2
 
             # Setup logging
             echo "Creating logging directory: $LOG_PATH" | tee -a "$LOG_FILE"
@@ -123,29 +125,40 @@ jobs:
             cp "$HOME_PATH/.env" "$DEPLOY_PATH/.env" || { echo "ERROR: Failed to copy .env file" | tee -a "$LOG_FILE"; exit 1; }
 
             # Install dependencies
+            
+            # composer install
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Installing composer dependencies" | tee -a "$LOG_FILE"
             composer install --no-interaction --no-dev --optimize-autoloader || { echo "ERROR: Composer install failed" | tee -a "$LOG_FILE"; exit 1; }
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Completed Installing composer dependencies" | tee -a "$LOG_FILE"
+            
+            sleep 2
 
+            # artisan migrate
             echo "Running database migrations" | tee -a "$LOG_FILE"
             php artisan migrate --force || { echo "ERROR: Artisan migrate failed" | tee -a "$LOG_FILE"; exit 1; }
+            
+            sleep 2
 
+            # npm install
             echo "Installing npm dependencies" | tee -a "$LOG_FILE"
             npm install --prefer-offline --no-audit --legacy-peer-deps || { echo "ERROR: NPM install failed" | tee -a "$LOG_FILE"; exit 1; }
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Complete Installing npm dependencies" | tee -a "$LOG_FILE"
 
+            # npm run build
             echo "[$(date +"%Y-%m-%d %H:%M:%S")] Building frontend assets" | tee -a "$LOG_FILE"
             npm run build || { echo "ERROR: NPM build failed" | tee -a "$LOG_FILE"; exit 1; }
-            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Complete Building frontend assets" | tee -a "$LOG_FILE"
-
+            
             # Ensure LIVE_PATH is removed if it's a directory or an old symlink
-            if [ -d "$LIVE_PATH" ] || [ -L "$LIVE_PATH" ]; then
-              echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
-              rm -rf "$LIVE_PATH"
-            fi
+            echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
+            rm -rf "$LIVE_PATH"
+            #if [ -d "$LIVE_PATH" ] || [ -L "$LIVE_PATH" ]; then
+            #  echo "Removing existing $LIVE_PATH" | tee -a "$LOG_FILE"
+            #fi
             
             # Create a new symlink pointing to the latest deployment
             echo "Creating new live symlink: $LIVE_PATH -> $DEPLOY_PATH" | tee -a "$LOG_FILE"
             ln -s "$DEPLOY_PATH" "$LIVE_PATH"
+            echo "ln -s $DEPLOY_PATH $LIVE_PATH" | tee -a "$LOG_FILE"
             
             # Verify that the symlink was created correctly
             if [ "$(readlink "$LIVE_PATH")" != "$DEPLOY_PATH" ]; then
