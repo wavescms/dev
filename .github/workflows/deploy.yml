@@ -28,13 +28,16 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H $DOMAIN >> ~/.ssh/known_hosts
           
+      - name: Set Timezone to Johannesburg
+        run: sudo timedatectl set-timezone Africa/Johannesburg
+
+      - name: Generate Timestamp
+        run: |
+          export TZ="Africa/Johannesburg"  # Set timezone for the session
+          
       - name: Deploy to server
         run: |
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          #HOME_PATH="$HOME_DIR"
-          #STORAGE_PATH="$HOME_PATH/storage"
-          VENDOR_PATH="$HOME_PATH/vendor"
-          #LIVE_LINK="$HOME_DIR/live"
           LOG_PATH="$LOG_PATH"
           LOG_FILE="$LOG_PATH/deploy-$TIMESTAMP.log"
           DEPLOY_PATH="$DEPLOYMENTS_PATH/$TIMESTAMP"
@@ -42,49 +45,43 @@ jobs:
           if [ -z "$STORAGE_PATH" ]; then
             STORAGE_PATH="$HOME_PATH/storage"
           fi
+          if [ -z "$VENDOR_PATH" ]; then
+            VENDOR_PATH="$HOME_PATH/vendor"
+          fi
           
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $USER@$DOMAIN << EOF
             
             echo "########################"
             echo "########################" | tee -a "$LOG_FILE"
-            
             echo "TIMESTAMP is: $TIMESTAMP" | tee -a "$LOG_FILE"
-            
             echo "HOME_PATH is: $HOME_PATH" | tee -a "$LOG_FILE"
-            
-            echo "STORAGE PATH is: $STORAGE_PATH"
-            echo "VENDOR_PATH is: $VENDOR_PATH"
-            
-            echo "LOG_PATH is: $LOG_PATH"
-            echo "LOG_FILE is: $LOG_FILE"
-            
-            echo "DEPLOYMENTS_PATH is: $DEPLOYMENTS_PATH"
-            echo "DEPLOY_PATH is: $DEPLOY_PATH"
-            
-            
-            echo "LIVE_PATH is: $LIVE_PATH"
-            
-
-            echo "########################"
+            echo "STORAGE PATH is: $STORAGE_PATH" | tee -a "$LOG_FILE"
+            echo "VENDOR_PATH is: $VENDOR_PATH" | tee -a "$LOG_FILE"
+            echo "LOG_PATH is: $LOG_PATH" | tee -a "$LOG_FILE"
+            echo "LOG_FILE is: $LOG_FILE" | tee -a "$LOG_FILE"
+            echo "DEPLOYMENTS_PATH is: $DEPLOYMENTS_PATH" | tee -a "$LOG_FILE"
+            echo "DEPLOY_PATH is: $DEPLOY_PATH" | tee -a "$LOG_FILE"
+            echo "LIVE_PATH is: $LIVE_PATH" | tee -a "$LOG_FILE"
+            echo "########################" | tee -a "$LOG_FILE"
             echo "########################"
             
-            exit 1
-
-            # Setup logging
-            mkdir -p "$LOG_DIR"
-
             log() {
               local message="$1"
               echo "[$(date +"%Y-%m-%d %H:%M:%S")] $message" | tee -a "$LOG_FILE"
             }
+            
+            echo "[$(date +"%Y-%m-%d %H:%M:%S")] Starting deployment process" | tee -a "$LOG_FILE"
 
-            log "Starting deployment process"
+            # Setup logging
+            echo "Creating logging directory: $LOG_PATH" | tee -a "$LOG_FILE"
+            mkdir -p "$LOG_PATH" || { echo "ERROR: Failed to create logging directory"; exit 1; }
+            
 
             # Create timestamp-based deployment directory
-                       
-
-            log "Creating deployment directory: $DEPLOY_DIR"
-            mkdir -p "$DEPLOY_DIR" || { log "ERROR: Failed to create deployment directory"; exit 1; }
+            echo "Creating deployment directory: $DEPLOY_PATH" | tee -a "$LOG_FILE"
+            mkdir -p "$DEPLOY_PATH" || { echo "ERROR: Failed to create deployment directory"; exit 1; }
+            
+            exit 1;
 
             # Clone repository
             log "Cloning repository to deployment directory"
@@ -112,9 +109,9 @@ jobs:
             log "Creating symbolic link for storage"
             rm -rf "$DEPLOY_DIR/storage"
             ln -s "$STORAGE_DIR" "$DEPLOY_DIR/storage"
-            log "Creating symlink for vendor directory"
-            rm -rf "$DEPLOY_DIR/vendor"
-            ln -s "$VENDOR_DIR" "$DEPLOY_DIR/vendor"
+            #log "Creating symlink for vendor directory"
+            #rm -rf "$DEPLOY_DIR/vendor"
+            #ln -s "$VENDOR_DIR" "$DEPLOY_DIR/vendor"
 
             # Copy .env file
             log "Copying .env file"
