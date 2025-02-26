@@ -88,8 +88,6 @@ jobs:
             # Create timestamp-based deployment directory
             echo "Creating deployment directory: $DEPLOY_PATH" | tee -a "$LOG_FILE"
             mkdir -p "$DEPLOY_PATH" || { echo "ERROR: Failed to create deployment directory"; exit 1; }
-            
-            exit 1;
 
             # Clone repository
             echo "Cloning repository to deployment directory"
